@@ -1,0 +1,25 @@
+Bước 1: Tạo file my-app, sau đó vào my-app install các  lệnh sau 
+	npm install -D tailwindcss@3 postcss autoprefixer
+	npx tailwindcss init -p
+
+Bước 2: npm install tailwindcss
+	npx tailwindcss init
+khi tạo thành công nó sẽ có them 2 file 
+	tailwind.config.js
+	postcss.config.js
+
+Bước 3: Sau thay đổi một số chỗ
+	vào file tailwind.config.js thêm
+		 content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+ Tiếp tục xoá tất cả trong file index.css
+	và sửa thành 
+		@tailwind base;
+		@tailwind components;
+		@tailwind utilities;
+và xoá luôn file App.css
+lệnh tải router
+npm install react-router-dom
+npm install react react-dom react-router-dom
