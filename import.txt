@@ -1,0 +1,28 @@
+Tải về tailwindcss
+Bước 1: npm install tailwindcss @tailwindcss/vite
+Bước 2: Thay đổi nội dung tệp index.css thành @import "tailwindcss";
+Bước 3: Thêm  import tailwindcss from '@tailwindcss/vite' và  plugins: [react(), tailwindcss()], vào  vite.config.js
+
+Tạo json server
+tạo file db.json tạo từ my-app( cho data vào) lưu file ngang hàng vs src
+sau đó chạy lệnh npx json-server --watch db.json --port 3001
+sau đó dán host lưu trữ vào và sử dụng http://localhost:3001/students
+
+Khởi tạo store redux
+Bước 1: npm install react-redux @reduxjs/toolkit
+
+Tải Router
+npm install react-router-dom
+
+
+-Tạo file React nhanh hơn
+	Install ES7
+tạo code nhanh : gõ rafce
+ 
+-Tạo Redux nhanh hơn
+Install JS/TS/ReactJS/Redux
+Store: gõ rts
+Slice: gõ rtcs
+
+-Kết nối giúp thay đổi thẻ đầu và cuối
+Vào setting tìm linked sau đó tích vào ô Linked Editing
