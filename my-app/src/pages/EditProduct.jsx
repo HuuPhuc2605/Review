@@ -1,269 +1,200 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchProducts,
-  updateProduct,
-} from "../features/products/productSlice";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchID, updateP } from "../features/products/productSlice";
+import { useParams, useNavigate } from "react-router-dom"; // useParams và useNavigate được sử dụng để lấy ID sản phẩm từ URL và điều hướng đến các trang khác
 
 const EditProduct = () => {
-  const { id } = useParams();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const {
-    productList = [],
-    isLoading,
-    error,
-  } = useSelector((state) => state.product);
-  const product = productList.find((p) => String(p.id) === id) || {};
-
-  const [formData, setFormData] = useState({
+  const { id } = useParams(); // useParams được sử dụng để trích xuất ID sản phẩm từ URL
+  const disp = useDispatch();
+  const nav = useNavigate(); // useNavigate được sử dụng để điều hướng đến các trang khác
+  const { selectedP, loading, error } = useSelector((state) => state.productL);
+  const [form, setForm] = useState({
     name: "",
-    price: "",
     description: "",
-    stock: "",
+    price: "",
   });
-  const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!productList.length) dispatch(fetchProducts());
-  }, [productList.length, dispatch]);
-
+    disp(fetchID(id));
+  }, [disp, id]);
   useEffect(() => {
-    if (product.id)
-      setFormData({
-        name: product.name || "",
-        price: product.price?.toString() || "",
-        description: product.description || "",
-        stock: product.stock?.toString() || "",
+    if (selectedP) {
+      setForm({
+        name: selectedP.name,
+        description: selectedP.description,
+        price: selectedP.price,
       });
-  }, [product]);
+    }
+  }, [selectedP]);
 
-  const handleChange = (e) =>
-    setFormData((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, price, stock, description } = formData;
-    if (!name.trim() || isNaN(+price) || isNaN(+stock))
-      return setErrorMsg("Vui lòng nhập đúng dữ liệu!");
-    setErrorMsg("");
-    setLoading(true);
-    try {
-      await dispatch(
-        updateProduct({
-          id,
-          name: name.trim(),
-          price: +price,
-          description: description.trim(),
-          stock: +stock,
-        })
-      ).unwrap();
-      navigate("/");
-    } catch {
-      setErrorMsg("Cập nhật thất bại");
+    const result = await disp(updateP({ ...form, id }));
+    if (updateP.fulfilled.match(result)) {
+      alert("Cập nhật sản phẩm thành công");
+      nav("/");
     }
-    setLoading(false);
   };
-
-  if (isLoading && !productList.length)
-    return <p className="p-10 text-center">⏳ Đang tải...</p>;
-  if (error)
-    return <p className="p-10 text-center text-red-600">Lỗi: {error}</p>;
-  if (!product.id)
-    return (
-      <p className="p-10 text-center text-red-600">
-        Không tìm thấy sản phẩm ID {id}
-      </p>
-    );
-
+  if (loading) return <div>Loading....</div>;
+  if (error) return <div>Error: {error}</div>;
   return (
-    <div className="max-w-lg mx-auto p-6">
-      <h2 className="text-xl font-semibold mb-4">Chỉnh sửa sản phẩm</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {["name", "price", "stock"].map((field) => (
-          <input
-            key={field}
-            name={field}
-            placeholder={
-              field === "name"
-                ? "Tên sản phẩm"
-                : field === "price"
-                ? "Giá sản phẩm"
-                : "Số lượng tồn kho"
-            }
-            type={field === "name" ? "text" : "number"}
-            value={formData[field]}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border rounded"
-          />
-        ))}
-        <textarea
-          name="description"
-          placeholder="Mô tả sản phẩm"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        {errorMsg && <p className="text-red-600">{errorMsg}</p>}
-        <div className="flex justify-between items-center">
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-          >
-            Quay lại
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50"
-          >
-            {loading ? "Đang lưu..." : "Lưu thay đổi"}
-          </button>
-        </div>
-      </form>
-    </div>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 flex flex-col items-center"
+    >
+      <h2 className="font-bold text-3xl mb-4 text-yellow-600">
+        Chỉnh sửa sản phẩm
+      </h2>
+      <input
+        type="text"
+        name="name"
+        placeholder="Nhập tên sản phẩm..."
+        value={form.name}
+        onChange={handleChange}
+        className="border rounded px-4 py-2 w-90"
+      />
+      <input
+        type="text"
+        name="price"
+        placeholder="Nhập giá sản phẩm..."
+        value={form.price}
+        onChange={handleChange}
+        className="border rounded px-4 py-2 w-90"
+      />
+      <input
+        type="text"
+        name="description"
+        placeholder="Nhập mô tả sản phẩm..."
+        value={form.description}
+        onChange={handleChange}
+        className="border rounded px-4 py-2 w-90"
+      />
+
+      <button
+        type="submit"
+        className="bg-yellow-500 text-white px-4 py-2 rounded"
+      >
+        Cập nhật
+      </button>
+    </form>
   );
 };
-
 export default EditProduct;
 
-// import React, { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router-dom";
-// import { useSelector, useDispatch } from "react-redux";
-// import {
-//   fetchProducts,
-//   updateProduct,
-// } from "../features/products/productSlice";
+//
+//
+//
+//
+// import { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
 
 // const EditProduct = () => {
 //   const { id } = useParams();
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
+//   const nav = useNavigate();
 
-//   const {
-//     productList = [],
-//     isLoading,
-//     error,
-//   } = useSelector((state) => state.product);
-//   const product = productList.find((p) => String(p.id) === id) || {};
-
-//   const [formData, setFormData] = useState({
+//   const [form, setForm] = useState({
 //     name: "",
-//     price: "",
 //     description: "",
+//     price: "",
 //   });
-//   const [errorMsg, setErrorMsg] = useState("");
-//   const [loading, setLoading] = useState(false);
 
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   // Fetch sản phẩm theo id
 //   useEffect(() => {
-//     if (!productList.length) dispatch(fetchProducts());
-//   }, [productList.length, dispatch]);
+//     const fetchProduct = async () => {
+//       try {
+//         const res = await fetch(`http://localhost:3001/products/${id}`);
+//         if (!res.ok) throw new Error("Không tìm thấy sản phẩm");
+//         const data = await res.json();
+//         setForm({
+//           name: data.name,
+//           description: data.description,
+//           price: data.price,
+//         });
+//         setLoading(false);
+//       } catch (err) {
+//         setError(err.message);
+//         setLoading(false);
+//       }
+//     };
+//     fetchProduct();
+//   }, [id]);
 
-//   useEffect(() => {
-//     if (product.id)
-//       setFormData({
-//         name: product.name || "",
-//         price: product.price?.toString() || "",
-//         description: product.description || "",
-//       });
-//   }, [product]);
-
-//   const handleChange = (e) =>
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   const handleChange = (e) => {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//   };
 
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
-//     setErrorMsg("");
-//     if (
-//       !formData.name.trim() ||
-//       !formData.price.trim() ||
-//       isNaN(+formData.price)
-//     )
-//       return setErrorMsg("Nhập đúng dữ liệu!");
-
-//     setLoading(true);
 //     try {
-//       await dispatch(
-//         updateProduct({
-//           id,
-//           name: formData.name.trim(),
-//           price: +formData.price,
-//           description: formData.description.trim(),
-//         })
-//       ).unwrap();
-//       navigate("/");
-//     } catch {
-//       setErrorMsg("Cập nhật thất bại");
-//     } finally {
-//       setLoading(false);
+//       const res = await fetch(`http://localhost:3001/products/${id}`, {
+//         method: "PUT",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(form),
+//       });
+//       if (!res.ok) throw new Error("Cập nhật thất bại");
+//       alert("Cập nhật sản phẩm thành công!");
+//       nav("/");
+//     } catch (err) {
+//       alert(` ${err.message}`);
 //     }
 //   };
 
-//   if (isLoading && !productList.length)
-//     return <p className="p-10 text-center">⏳ Đang tải...</p>;
+//   if (loading) return <div className="text-center">Đang tải sản phẩm...</div>;
 //   if (error)
-//     return <p className="p-10 text-center text-red-600">Lỗi: {error}</p>;
-//   if (!product.id)
-//     return (
-//       <p className="p-10 text-center text-red-600">
-//         Không tìm thấy sản phẩm ID {id}
-//       </p>
-//     );
+//     return <div className="text-center text-red-500">Lỗi: {error}</div>;
 
 //   return (
-//     <div className="max-w-lg mx-auto p-6">
-//       <h2 className="text-xl font-semibold mb-4">Chỉnh sửa sản phẩm</h2>
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         <input
-//           name="name"
-//           placeholder="Tên sản phẩm"
-//           value={formData.name}
-//           onChange={handleChange}
-//           required
-//           className="w-full p-2 border rounded"
-//         />
-//         <input
-//           name="price"
-//           placeholder="Giá sản phẩm"
-//           value={formData.price}
-//           onChange={handleChange}
-//           required
-//           className="w-full p-2 border rounded"
-//           inputMode="decimal"
-//           pattern="^\d*\.?\d*$"
-//         />
-//         <textarea
-//           name="description"
-//           placeholder="Mô tả sản phẩm"
-//           value={formData.description}
-//           onChange={handleChange}
-//           required
-//           className="w-full p-2 border rounded"
-//         />
-//         {errorMsg && <p className="text-red-600">{errorMsg}</p>}
-//         <div className="flex justify-between items-center">
-//           <button
-//             type="button"
-//             onClick={() => navigate("/")}
-//             className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-//           >
-//             Quay lại
-//           </button>
-//           <button
-//             type="submit"
-//             disabled={loading}
-//             className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:opacity-50"
-//           >
-//             {loading ? "Đang lưu..." : "Lưu thay đổi"}
-//           </button>
-//         </div>
-//       </form>
-//     </div>
+//     <form
+//       onSubmit={handleSubmit}
+//       className="space-y-4 p-4 max-w-xl mx-auto flex flex-col items-center"
+//     >
+//       <h2 className="font-bold text-3xl mb-4 text-yellow-600">
+//         Chỉnh sửa sản phẩm
+//       </h2>
+
+//       <input
+//         type="text"
+//         name="name"
+//         placeholder="Nhập tên sản phẩm..."
+//         value={form.name}
+//         onChange={handleChange}
+//         className="border rounded px-4 py-2 w-full"
+//       />
+
+//       <input
+//         type="text"
+//         name="price"
+//         placeholder="Nhập giá sản phẩm..."
+//         value={form.price}
+//         onChange={handleChange}
+//         className="border rounded px-4 py-2 w-full"
+//       />
+
+//       <input
+//         type="text"
+//         name="description"
+//         placeholder="Nhập mô tả sản phẩm..."
+//         value={form.description}
+//         onChange={handleChange}
+//         className="border rounded px-4 py-2 w-full"
+//       />
+
+//       <button
+//         type="submit"
+//         className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded font-semibold"
+//       >
+//         Cập nhật
+//       </button>
+//     </form>
 //   );
 // };
 

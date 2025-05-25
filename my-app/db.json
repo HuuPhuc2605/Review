@@ -1,18 +1,18 @@
 {
   "products": [
     {
-      "id": "1",
       "name": "iPhone 14 Pro Max",
-      "price": 31000000,
-      "description": "iPhone 14 Pro Max, kho 3",
-      "stock": 255
+      "description": "iPhone 14 Pro Max, kho 10",
+      "price": "3100000",
+      "id": "1",
+      "stock": 10
     },
     {
-      "id": "2",
       "name": "Samsung S23 Ultra",
+      "description": "Camera 200MP vip",
       "price": 28000000,
-      "description": "Camera 200MP, pin 5000mAh, màn hình AMOLED 6.8\"",
-      "stock": 20
+      "id": "2",
+      "stock": 10
     },
     {
       "id": "3",

@@ -1,16 +1,15 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 const API_URL = "http://localhost:3001/products";
-
+// Hàm fetchApi để gọi API
 const fetchApi = async (url, options) => {
   const res = await fetch(url, options);
   if (!res.ok) throw new Error("Lỗi khi fetch dữ liệu");
   return res.json();
 };
-
-// Thunks
-export const fetchProducts = createAsyncThunk(
-  "product/fetchProducts",
+// Đọc dữ liệu từ API
+export const fetchP = createAsyncThunk(
+  "product/fetchP",
   async (_, { rejectWithValue }) => {
     try {
       return await fetchApi(API_URL);
@@ -19,104 +18,125 @@ export const fetchProducts = createAsyncThunk(
     }
   }
 );
-
-export const addProduct = createAsyncThunk(
-  "product/addProduct",
-  async (productData, { rejectWithValue }) => {
+// Thêm sản phẩm mới vào API
+export const addP = createAsyncThunk(
+  "productL/addP",
+  async (proData, { rejectWithValue }) => {
     try {
       return await fetchApi(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData),
+        body: JSON.stringify(proData),
       });
     } catch (err) {
       return rejectWithValue(err.message);
     }
   }
 );
-
-export const updateProduct = createAsyncThunk(
-  "product/updateProduct",
-  async (productData, { rejectWithValue }) => {
-    try {
-      return await fetchApi(`${API_URL}/${productData.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData),
-      });
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
-  }
-);
-
-export const deleteProduct = createAsyncThunk(
-  "product/deleteProduct",
+// Đọc dữ liệu chi tiết sản phẩm từ API
+export const fetchID = createAsyncThunk(
+  "productL/fetchID",
   async (id, { rejectWithValue }) => {
     try {
-      await fetchApi(`${API_URL}/${id}`, { method: "DELETE" });
-      return id;
+      return await fetchApi(`${API_URL}/${id}`);
     } catch (err) {
       return rejectWithValue(err.message);
     }
   }
 );
-
-const initialState = { productList: [], isLoading: false, error: null };
-
-const productSlice = createSlice({
-  name: "product",
+// Cập nhật sản phẩm trong API
+export const updateP = createAsyncThunk(
+  "productL/updateP",
+  async (proData, { rejectWithValue }) => {
+    try {
+      return await fetchApi(`${API_URL}/${proData.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(proData),
+      });
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+// Xóa sản phẩm trong API
+export const deleteP = createAsyncThunk(
+  "productL/deleteP",
+  async (id, { rejectWithValue }) => {
+    try {
+      await fetchApi(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+      return id; // Trả về ID để xóa sản phẩm khỏi state
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+const initialState = {
+  productL: [],
+  selectedP: null, // Sản phẩm đang xem chi tiết
+  loading: false,
+  error: null,
+};
+const sliceProduct = createSlice({
+  name: "productL",
   initialState,
   reducers: {},
-  extraReducers: (builder) => {
-    // Dùng 1 hàm chung cho pending & rejected
+  extraReducers: (bd) => {
+    // setLoading và setError là các hàm để cập nhật trạng thái loading và error
     const setLoading = (state) => {
-      state.isLoading = true;
+      state.loading = true;
       state.error = null;
     };
+
     const setError = (state, action) => {
-      state.isLoading = false;
+      state.loading = false;
       state.error = action.payload;
     };
-
-    builder
-      // Fetch
-      .addCase(fetchProducts.pending, setLoading)
-      .addCase(fetchProducts.rejected, setError)
-      .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.productList = action.payload;
-      })
-
-      // Add
-      .addCase(addProduct.pending, setLoading)
-      .addCase(addProduct.rejected, setError)
-      .addCase(addProduct.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.productList.push(action.payload);
-      })
-
-      // Update
-      .addCase(updateProduct.pending, setLoading)
-      .addCase(updateProduct.rejected, setError)
-      .addCase(updateProduct.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const idx = state.productList.findIndex(
-          (p) => p.id === action.payload.id
-        );
-        if (idx !== -1) state.productList[idx] = action.payload;
-      })
-
-      // Delete
-      .addCase(deleteProduct.pending, setLoading)
-      .addCase(deleteProduct.rejected, setError)
-      .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.productList = state.productList.filter(
-          (p) => p.id !== action.payload
-        );
-      });
+    // Danh sách sản phẩm
+    bd.addCase(fetchP.pending, setLoading);
+    bd.addCase(fetchP.fulfilled, (state, action) => {
+      state.loading = false;
+      state.productL = action.payload;
+    });
+    bd.addCase(fetchP.rejected, setError);
+    // Chi tiết sản phẩm
+    bd.addCase(fetchID.pending, setLoading);
+    bd.addCase(fetchID.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedP = action.payload;
+    });
+    bd.addCase(fetchID.rejected, setError);
+    // Thêm sản phẩm mới
+    bd.addCase(addP.pending, setLoading);
+    bd.addCase(addP.fulfilled, (state, action) => {
+      state.loading = false;
+      state.productL.push(action.payload); // Thêm sản phẩm mới vào danh sách
+    });
+    bd.addCase(addP.rejected, setError);
+    // Cập nhật sản phẩm
+    bd.addCase(updateP.pending, setLoading);
+    bd.addCase(updateP.fulfilled, (state, action) => {
+      state.loading = false;
+      const index = state.productL.findIndex(
+        (product) => product.id === action.payload.id
+      );
+      if (index !== -1) {
+        state.productL[index] = action.payload; // Cập nhật sản phẩm trong danh sách
+      }
+    });
+    bd.addCase(updateP.rejected, setError);
+    // Xóa sản phẩm
+    bd.addCase(deleteP.pending, setLoading);
+    bd.addCase(deleteP.fulfilled, (state, action) => {
+      state.loading = false;
+      state.productL = state.productL.filter(
+        (product) => product.id !== action.payload // Lọc bỏ sản phẩm đã xóa
+      );
+    });
+    bd.addCase(deleteP.rejected, setError);
   },
 });
 
-export default productSlice.reducer;
+export default sliceProduct.reducer;

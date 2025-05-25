@@ -1,44 +1,102 @@
-import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchProducts } from "../features/products/productSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchID } from "../features/products/productSlice";
+import { useParams, useNavigate } from "react-router-dom";
 
 const ProductDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { productList = [], isLoading, error } = useSelector((s) => s.product);
-  const product = productList.find((p) => String(p.id) === id);
+  const { id } = useParams(); // useParams được sử dụng để trích xuất ID sản phẩm từ URL
+  const disp = useDispatch();
+  const nav = useNavigate(); // useNavigate được sử dụng để điều hướng đến các trang khác
+  const { selectedP, loading, error } = useSelector((state) => state.productL);
 
   useEffect(() => {
-    if (!productList.length) dispatch(fetchProducts());
-  }, [productList.length, dispatch]);
-
-  if (isLoading) return <p className="text-center py-10">Đang tải...</p>;
-  if (error || !product)
-    return (
-      <p className="text-red-500 py-10">{error || "Không tìm thấy sản phẩm"}</p>
-    );
-
+    disp(fetchID(id));
+  }, [disp, id]);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+  if (!selectedP) {
+    return <div>Không tìm thấy sản phẩm</div>;
+  }
   return (
-    <div className="  text-xl">
-      <h1 className="text-3xl text-blue-600 mb-32 font-bold">
-        Thông tin chi tiết sản phẩm
-      </h1>
-      <h2 className="text-2xl font-bold mb-4"> {product.name}</h2>
-      <p className="text-xl text-gray-700 mb-2">
-        Giá: {product.price.toLocaleString()}đ
-      </p>
-      <p className="text-gray-600">Mô tả: {product.description}</p>
-      <p className="text-gray-600">Hàng tồn kho: {product.stock}</p>
-      <button
-        onClick={() => navigate("/")}
-        className="mt-6 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-      >
-        Quay lại
-      </button>
+    <div className="mx-auto p-16">
+      <h2 className="text-3xl font-bold text-blue-600 mb-8">
+        Thông tin chi tiết sản phẩm{" "}
+      </h2>
+      <div className="space-y-4 text-xl border w-96 rounded-lg p-4 shadow-lg shadow-gray-500">
+        <h2 className="text-lg font-semibold mb1">{selectedP.name} </h2>
+        <p className="text-gray-800 mb2">Mô tả: {selectedP.description}</p>
+        <p className="text-gray-800 mb2">Giá: {selectedP.price}</p>
+
+        <button
+          onClick={() => nav("/")}
+          className="bg-blue-500 rounded px-4 py-2 mt-8"
+        >
+          Quay lại
+        </button>
+      </div>
     </div>
   );
 };
 
 export default ProductDetail;
+
+//
+//
+//
+//
+// import { useEffect, useState } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+
+// const ProductDetail = () => {
+//   const { id } = useParams();
+//   const nav = useNavigate();
+
+//   const [selectedP, setSelectedP] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState("");
+
+//   useEffect(() => {
+//     const fetchProduct = async () => {
+//       try {
+//         const res = await fetch(`http://localhost:3001/products/${id}`);
+//         if (!res.ok) throw new Error("Không tìm thấy sản phẩm");
+//         const data = await res.json();
+//         setSelectedP(data);
+//       } catch (err) {
+//         setError(err.message);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchProduct();
+//   }, [id]);
+
+//   if (loading) return <div>Đang tải sản phẩm...</div>;
+//   if (error) return <div className="text-red-500">Lỗi: {error}</div>;
+//   if (!selectedP) return <div>Không tìm thấy sản phẩm</div>;
+
+//   return (
+//     <div className="mx-auto p-16">
+//       <h2 className="text-3xl font-bold text-blue-600 mb-8">
+//         Thông tin chi tiết sản phẩm
+//       </h2>
+//       <div className="space-y-4 text-xl border w-96 rounded-lg p-4 shadow-lg shadow-gray-500">
+//         <h2 className="text-lg font-semibold mb-1">{selectedP.name}</h2>
+//         <p className="text-gray-800 mb-2">Mô tả: {selectedP.description}</p>
+//         <p className="text-gray-800 mb-2">Giá: {selectedP.price}</p>
+//         <button
+//           onClick={() => nav("/")}
+//           className="bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2 mt-8"
+//         >
+//           Quay lại
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ProductDetail;
